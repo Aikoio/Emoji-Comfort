@@ -34,11 +34,17 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    res.status(200).json({
-      quote: data.choices[0].message.content
-    });
+    // Debugging logs
+    console.log("OpenAI Response:", JSON.stringify(data, null, 2));
+
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      res.status(200).json({ quote: data.choices[0].message.content });
+    } else {
+      res.status(500).json({ error: "No quote returned from AI", data });
+    }
 
   } catch (error) {
-    res.status(500).json({ error: "AI error" });
+    console.error("API Error:", error);
+    res.status(500).json({ error: "AI error", details: error.message });
   }
-      }
+            }
