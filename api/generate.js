@@ -17,14 +17,8 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
           messages: [
-            {
-              role: "system",
-              content: "Create short comforting quotes based on emojis."
-            },
-            {
-              role: "user",
-              content: `Emoji: ${emoji}`
-            }
+            { role: "system", content: "Create short comforting quotes based on emojis." },
+            { role: "user", content: `Emoji: ${emoji}` }
           ],
           max_tokens: 60,
           temperature: 0.8
@@ -34,17 +28,21 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // Debugging logs
-    console.log("OpenAI Response:", JSON.stringify(data, null, 2));
+    // Debug: log full response from OpenAI
+    console.log("OpenAI response:", JSON.stringify(data, null, 2));
+
+    if (data.error) {
+      return res.status(500).json({ error: "OpenAI API error", details: data.error });
+    }
 
     if (data.choices && data.choices[0] && data.choices[0].message) {
       res.status(200).json({ quote: data.choices[0].message.content });
     } else {
-      res.status(500).json({ error: "No quote returned from AI", data });
+      res.status(500).json({ error: "No quote returned", data });
     }
 
-  } catch (error) {
-    console.error("API Error:", error);
-    res.status(500).json({ error: "AI error", details: error.message });
+  } catch (err) {
+    console.error("Fetch error:", err);
+    res.status(500).json({ error: "AI error", details: err.message });
   }
-            }
+      }
