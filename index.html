@@ -1,141 +1,76 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Emoji Comfort</title>
-
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #cfd9df, #e2ebf0);
-      min-height: 100vh;
+      font-family: sans-serif;
+      background: #f0f8ff;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-    }
-
-    .app {
-      background: white;
-      width: 90%;
-      max-width: 400px;
+      justify-content: center;
+      min-height: 100vh;
       padding: 20px;
-      border-radius: 16px;
-      text-align: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-
-    h1 {
-      margin-bottom: 10px;
-    }
-
     input {
-      width: 100%;
-      font-size: 1.5rem;
+      font-size: 2rem;
       padding: 10px;
+      width: 80%;
       text-align: center;
-      border-radius: 10px;
-      border: 1px solid #ccc;
     }
-
     button {
-      width: 100%;
-      padding: 12px;
       margin-top: 10px;
-      border: none;
-      border-radius: 10px;
+      padding: 10px 20px;
       font-size: 1rem;
-      cursor: pointer;
     }
-
-    .generate {
-      background: #7fbcd2;
-      color: white;
-    }
-
-    .reset {
-      background: #e0e0e0;
-    }
-
-    .quote-box {
+    #quote {
       margin-top: 20px;
-      padding: 15px;
-      background: #f4f8fb;
-      border-radius: 10px;
-      min-height: 60px;
-      font-style: italic;
-    }
-
-    .spinner {
-      display: none;
-      margin: 15px auto;
-      width: 30px;
-      height: 30px;
-      border: 4px solid #ddd;
-      border-top: 4px solid #7fbcd2;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      font-size: 1.2rem;
+      text-align: center;
+      min-height: 50px;
     }
   </style>
 </head>
-
 <body>
-  <div class="app">
-    <h1>Emoji Quote Generator</h1>
-    <p>Type one emoji</p>
-
-    <input id="emojiInput" placeholder="🥹" />
-
-    <button class="generate" onclick="generateQuote()">Generate</button>
-    <button class="reset" onclick="resetApp()">Reset</button>
-
-    <div class="spinner" id="spinner"></div>
-    <div class="quote-box" id="quoteOutput"></div>
-  </div>
+  <h1>Emoji Comfort</h1>
+  <input id="emojiInput" type="text" placeholder="Enter an emoji" />
+  <button id="generateBtn">Generate Quote</button>
+  <div id="quote"></div>
 
   <script>
-    // 🔴 CHANGE THIS AFTER VERCEL DEPLOY
-    const API_URL = "https://emoji-comfort-ao3pfyxs2-aikoios-projects.vercel.app";
+    const emojiInput = document.getElementById('emojiInput');
+    const generateBtn = document.getElementById('generateBtn');
+    const quoteBox = document.getElementById('quote');
 
-    async function generateQuote() {
-      const emoji = document.getElementById("emojiInput").value.trim();
-      const output = document.getElementById("quoteOutput");
-      const spinner = document.getElementById("spinner");
+    generateBtn.addEventListener('click', () => {
+      const emoji = emojiInput.value.trim();
+      if (!emoji) return;
 
-      if (!emoji) {
-        output.textContent = "Please enter an emoji.";
-        return;
-      }
+      quoteBox.textContent = "Generating...";
 
-      spinner.style.display = "block";
-      output.textContent = "";
-
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ emoji })
-        });
-
+      fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ emoji })
+      })
+      .then(async res => {
         const data = await res.json();
-        output.textContent = data.quote;
-
-      } catch {
-        output.textContent = "Error generating quote.";
-      } finally {
-        spinner.style.display = "none";
-      }
-    }
-
-    function resetApp() {
-      document.getElementById("emojiInput").value = "";
-      document.getElementById("quoteOutput").textContent = "";
-    }
+        if (!res.ok) throw new Error(data.error || "API error");
+        return data;
+      })
+      .then(data => {
+        quoteBox.textContent = data.quote;
+      })
+      .catch(err => {
+        console.error(err);
+        quoteBox.textContent = "Error generating quote.";
+      });
+    });
   </script>
 </body>
 </html>
